@@ -1,0 +1,256 @@
+"""
+Description from Kaggle:
+You are provided with a year of transactional data for 22,873 users on the site ponpare.jp. The training set spans the dates 2011-07-01 to 2012-06-23. The test set spans the week after the end of the training set, 2012-06-24 to 2012-06-30. The goal of the competition is to recommend a ranked list of coupons for each user in the dataset (found in user_list.csv). Your predictions are scored against the actual coupon purchases, made during the test set week, of the 310 possible test set coupons.
+
+File descriptions
+
+The dataset has relational format, with hashed ID columns for each entity.
+
+user_list.csv - the master list of users in the dataset
+Column Name	Description	Type	Length	Decimal	Note
+USER_ID_hash	User ID	VARCHAR2	32	 	 
+REG_DATE	Registered date	DATE	 	 	Sign up date
+SEX_ID	Gender	CHAR	1	 	f = female　m = male
+AGE	Age	NUMBER	4	0	 
+WITHDRAW_DATE	Unregistered date	DATE	 	 	 
+PREF_NAME	Residential Prefecture	VARCHAR2	2	 	[JPN] Not registered if empty
+coupon_list_train.csv - the master list of coupons which are considered part of the training set
+coupon_list_test.csv - the master list of coupons which are considered part of the test set. Your competition predictions should be sourced only from these 310 coupons. You will not receive credit for predicting training set coupons that were purchased during the test set period.
+Column Name	Description	Type	Length	Decimal	Note	 	 	 
+CAPSULE_TEXT	Capsule text	VARCHAR2	20	 	[JPN]	 	 	 
+GENRE_NAME	Category name	VARCHAR2	50	 	[JPN]	 	 	 
+PRICE_RATE	Discount rate	NUMBER	4	0	 	 	 	 
+CATALOG_PRICE	List price	NUMBER	10	0	 	 	 	 
+DISCOUNT_PRICE	Discount price	NUMBER	10	0	 	 	 	 
+DISPFROM	Sales release date	DATE	 	 	 	 	 	 
+DISPEND	Sales end date	DATE	 	 	 	 	 	 
+DISPPERIOD	Sales period (day)	NUMBER	4	0	 	 	 	 
+VALIDFROM	The term of validity starts	DATE	 	 	 	 	 	 
+VALIDEND	The term of validity ends	DATE	 	 	 	 	 	 
+VALIDPERIOD	Validity period (day)	NUMBER	4	0	 	 	 	 
+USABLE_DATE_MON	Is available on Monday	CHAR	1	 	 	 	 	 
+USABLE_DATE_TUE	Is available on Tuesday	CHAR	1	 	 	 	 	 
+USABLE_DATE_WED	Is available on Wednesday	CHAR	1	 	 	 	 	 
+USABLE_DATE_THU	Is available on Thursday	CHAR	1	 	 	 	 	 
+USABLE_DATE_FRI	Is available on Friday	CHAR	1	 	 	 	 	 
+USABLE_DATE_SAT	Is available on Saturday	CHAR	1	 	 	 	 	 
+USABLE_DATE_SUN	Is available on Sunday	CHAR	1	 	 	 	 	 
+USABLE_DATE_HOLIDAY	Is available on holiday	CHAR	1	 	 	 	 	 
+USABLE_DATE_BEFORE_HOLIDAY	Is available on the day before holiday	CHAR	1	 	 	 	 	 
+large_area_name	Large area name of shop location	VARCHAR2	30	 	[JPN]	 	 	 
+ken_name	Prefecture name of shop	VARCHAR2	8	 	[JPN]	 	 	 
+small_area_name	Small area name of shop location	VARCHAR2	30	 	[JPN]	 	 	 
+COUPON_ID_hash	Coupon ID	VARCHAR2	32	 	 	 	 	
+coupon_visit_train.csv - the viewing log of users browsing coupons during the training set time period. You are not provided this table for the test set period.
+Column Name	Description	Type	Length	Decimal	Note	 	 	 
+PURCHASE_FLG	Purchased flag	NUMBER	1	0	0:Not purchased 1:Purchased	 	 	 
+PURCHASEID_hash	Purchase ID	VARCHAR2	128	 	 	 	 	 
+I_DATE	View date	DATE	 	 	Purchase date if purchased	 	 	 
+PAGE_SERIAL	 	VARCHAR2	 	 	 	 	 	 
+REFERRER_hash	Referer	VARCHAR2	4000	 	 	 	 	 
+VIEW_COUPON_ID_hash	Browsing Coupon ID	VARCHAR2	128	 	 	 	 	 
+USER_ID_hash	User ID	VARCHAR2	10	 	 	 	 	 
+SESSION_ID_hash	Session ID	VARCHAR2	128	 	 	 	 	
+coupon_detail_train.csv - the purchase log of users buying coupons during the training set time period. You are not provided this table for the test set period.
+Column Name	Description	Type	Length	Decimal	Note	 	 	 
+ITEM_COUNT	Purchased item count	NUMBER	10	0	 	 	 	 
+I_DATE	Purchase date	DATE	 	 	 	 	 	 
+SMALL_AREA_NAME	Small area name	VARCHAR2	30	 	[JPN] User redidential area name	 	 	 
+PURCHASEID_hash	Purchase ID	VARCHAR2	32	 	 	 	 	 
+USER_ID_hash	User ID	VARCHAR2	32	 	 	 	 	 
+COUPON_ID_hash	Coupon ID	VARCHAR2	32	 	 	 	 	
+coupon_area_train.csv - the coupon listing area for the training set coupons
+coupon_area_test.csv - the coupon listing area for the test set coupons
+Column Name	Description	Type	Length	Decimal	Note	 	 	 
+SMALL_AREA_NAME	Small area name	VARCHAR2	30	 	[JPN]	 	 	 
+PREF_NAME	Listed prefecture name	VARCHAR2	8	 	[JPN]	 	 	 
+COUPON_ID	Coupon ID	VARCHAR2	32	 	 	 	 	
+sample_submission.csv - a sample file showing the correct format for predictions
+documentation.zip - an archive of Excel files containing an entity relationship diagram and English translations
+
+
+"""
+# rm(list = ls())
+
+coupon_area_test <- read.csv("/home/shahan/Desktop/Project/pon/coupon_area_test.csv",header = T)
+coupon_area_train <- read.csv("/home/shahan/Desktop/Project/pon/coupon_area_train.csv",header = T)
+coupon_detail_train <- read.csv("/home/shahan/Desktop/Project/pon/coupon_detail_train.csv",header = T)
+coupon_list_test <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test.csv",header = T)
+coupon_list_train <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_train.csv",header = T)
+coupon_visit_train <- read.csv("/home/shahan/Desktop/Project/pon/coupon_visit_train.csv",header = T)
+prefecture_locations <- read.csv("/home/shahan/Desktop/Project/pon/prefecture_locations.csv",header = T)
+sample_submission <- read.csv("/home/shahan/Desktop/Project/pon/sample_submission.csv",header = T)
+user_list <- read.csv("/home/shahan/Desktop/Project/pon/user_list.csv",header = T)
+
+#Take a look at the data
+library(funModeling)
+
+dim(coupon_area_test)
+str(coupon_area_test)
+summary(coupon_area_test) 
+df_status(coupon_area_test)
+
+dim(coupon_area_train)
+str(coupon_area_train)
+summary(coupon_area_train) 
+df_status(coupon_area_train)
+
+dim(coupon_detail_train)
+str(coupon_detail_train)
+summary(coupon_detail_train) 
+df_status(coupon_detail_train)
+
+dim(coupon_list_test)
+str(coupon_list_test)
+summary(coupon_list_test) 
+df_status(coupon_list_test) #12 variables have~30% nas
+
+dim(coupon_list_train)
+str(coupon_list_train)
+summary(coupon_list_train) 
+df_status(coupon_list_train) #12 variables have~30% nas
+head(coupon_list_train,500)
+
+dim(coupon_visit_train)
+str(coupon_visit_train)
+summary(coupon_visit_train) 
+df_status(coupon_visit_train)
+
+dim(prefecture_locations)
+str(prefecture_locations)
+summary(prefecture_locations) 
+df_status(prefecture_locations)
+
+dim(user_list)
+str(user_list)
+summary(user_list) 
+df_status(user_list) #withdraw date has lot of nas
+head(user_list)
+
+df_status(coupon_list_train)
+df_status(coupon_area_train)
+
+
+#Exporting unique regions in train area
+library(xlsx)
+write.xlsx(unique(coupon_area_train$SMALL_AREA_NAME),"/home/shahan/Desktop/Project/pon/Train_areaname.xlsx")
+coupon_area_train1 <- (merge("/home/shahan/Desktop/Project/pon/Train_areaname.xlsx",coupon_area_train, by = 'Original'))
+
+library(plyr)
+Train_areaname <- read.csv(file ="/home/shahan/Desktop/Project/pon/Train_areaname1.csv",header = T)
+head(Train_areaname)
+# coupon_area_train1 <- join(coupon_area_train,Train_areaname, by = c("Original","translated.using.google.translate"))
+Train_areaname1 <- Train_areaname
+colnames(Train_areaname1) <- c("SMALL_AREA_NAME","translated.using.google.translate")
+coupon_area_train1 <- join(coupon_area_train,Train_areaname1, by = "SMALL_AREA_NAME")
+head(coupon_area_train1)
+head(Train_areaname1)
+colnames(coupon_area_train1) <- c("SMALL_AREA_NAME","PREF_NAME","COUPON_ID_hash","Trans_area_name")
+
+write.xlsx(unique(coupon_area_train1$PREF_NAME),"/home/shahan/Desktop/Project/pon/Train_prefname.xlsx")
+Train_prefname <- read.csv(file ="/home/shahan/Desktop/Project/pon/Train_prefname.csv",header = T)
+head(coupon_area_train1)
+head(Train_prefname)
+coupon_area_train2 <- join(coupon_area_train1,Train_prefname, by = "PREF_NAME")
+head(coupon_area_train2,10)
+summary(coupon_area_train2)
+df_status(coupon_area_train2)
+colnames(coupon_area_train2)
+colnames(coupon_area_train2) <- c("SMALL_AREA_NAME","PREF_NAME","COUPON_ID_hash","Trans_area_name","Trans_pref_name")
+#coupon_area_train2 has translated small_area_name and pref_names
+
+write.csv(unique(coupon_detail_train$SMALL_AREA_NAME),"/home/shahan/Desktop/Project/pon/coupon_details_Train_area_name.csv")
+coupon_detail_train_area_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_details_Train_area_name.csv",header = T)
+coupon_detail_train2 <- join(coupon_detail_train,coupon_detail_train_area_name, by = "SMALL_AREA_NAME")
+head(coupon_detail_train2)
+#coupon_detail_train has translated small_area_names
+df_status(coupon_detail_train2)
+
+#coupon_list_train
+write.csv(unique(coupon_list_train$CAPSULE_TEXT),"/home/shahan/Desktop/Project/pon/coupon_list_Train_capsule_text.csv")
+coupon_list_train_CAPSULE_TEXT <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_Train_capsule_text.csv",header = T)
+coupon_list_train2 <- join(coupon_list_train,coupon_list_train_CAPSULE_TEXT, by = "CAPSULE_TEXT")
+head(coupon_list_train2)
+
+write.csv(unique(coupon_list_train$GENRE_NAME),"/home/shahan/Desktop/Project/pon/coupon_list_Train_genre_name.csv")
+coupon_list_train_GENRE_NAME <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_Train_genre_name.csv",header = T)
+coupon_list_train3 <- join(coupon_list_train2,coupon_list_train_GENRE_NAME, by = "GENRE_NAME")
+head(coupon_list_train3,2)
+
+write.csv(unique(coupon_list_train$large_area_name),"/home/shahan/Desktop/Project/pon/coupon_list_Train_large_area_name.csv")
+coupon_list_train_large_area_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_Train_large_area_name.csv",header = T)
+coupon_list_train4 <- join(coupon_list_train3,coupon_list_train_large_area_name, by = "large_area_name")
+head(coupon_list_train4)
+
+write.csv(unique(coupon_list_train$ken_name),"/home/shahan/Desktop/Project/pon/coupon_list_Train_ken_name.csv")
+coupon_list_train_large_ken_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_Train_ken_name.csv",header = T)
+coupon_list_train5 <- join(coupon_list_train4,coupon_list_train_large_ken_name, by = "ken_name")
+head(coupon_list_train5,10)
+
+write.csv(unique(coupon_list_train$small_area_name),"/home/shahan/Desktop/Project/pon/coupon_list_Train_small_area_name.csv")
+coupon_list_train_small_area_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_Train_small_area_name.csv",header = T)
+coupon_list_train6 <- join(coupon_list_train5,coupon_list_train_small_area_name, by = "small_area_name")
+head(coupon_list_train6,10)
+
+write.csv(unique(prefecture_locations$PREF_NAME),"/home/shahan/Desktop/Project/pon/prefecture_locations_PREF_NAME.csv")
+prefecture_locations_PREF_NAME <- read.csv("/home/shahan/Desktop/Project/pon/prefecture_locations_PREF_NAME.csv",header = T)
+prefecture_locations1 <- join(prefecture_locations,prefecture_locations_PREF_NAME, by = "PREF_NAME")
+head(prefecture_locations1,10)
+
+write.csv(unique(prefecture_locations$PREFECTUAL_OFFICE),"/home/shahan/Desktop/Project/pon/prefecture_locations_PREFECTUAL_OFFICE.csv")
+prefecture_locations_PREFECTUAL_OFFICE <- read.csv("/home/shahan/Desktop/Project/pon/prefecture_locations_PREFECTUAL_OFFICE.csv",header = T)
+prefecture_locations2 <- join(prefecture_locations1,prefecture_locations_PREFECTUAL_OFFICE, by = "PREFECTUAL_OFFICE")
+head(prefecture_locations2,10)
+
+write.csv(unique(user_list$PREF_NAME),"/home/shahan/Desktop/Project/pon/user_list_PREF_NAME.csv")
+user_list_PREF_NAME <- read.csv("/home/shahan/Desktop/Project/pon/user_list_PREF_NAME.csv",header = T)
+user_list2 <- join(user_list,user_list_PREF_NAME, by = "PREF_NAME")
+head(user_list2,10)
+
+head(coupon_area_test)
+write.csv(unique(coupon_area_test$SMALL_AREA_NAME),"/home/shahan/Desktop/Project/pon/coupon_area_test_SMALL_AREA_NAME.csv")
+coupon_area_test_SMALL_AREA_NAME <- read.csv("/home/shahan/Desktop/Project/pon/coupon_area_test_SMALL_AREA_NAME.csv",header = T)
+coupon_area_test2 <- join(coupon_area_test,coupon_area_test_SMALL_AREA_NAME, by = "SMALL_AREA_NAME")
+head(coupon_area_test2,10)
+
+write.csv(unique(coupon_area_test$PREF_NAME),"/home/shahan/Desktop/Project/pon/coupon_area_test_PREF_NAME.csv")
+coupon_area_test_PREF_NAME <- read.csv("/home/shahan/Desktop/Project/pon/coupon_area_test_PREF_NAME.csv",header = T)
+coupon_area_test3 <- join(coupon_area_test2,coupon_area_test_PREF_NAME, by = "PREF_NAME")
+head(coupon_area_test3,10)
+
+write.csv(unique(coupon_list_test$CAPSULE_TEXT),"/home/shahan/Desktop/Project/pon/coupon_list_test_CAPSULE_TEXT.csv")
+coupon_list_test_CAPSULE_TEXT <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test_CAPSULE_TEXT.csv",header = T)
+coupon_list_test2 <- join(coupon_list_test,coupon_list_test_CAPSULE_TEXT, by = "CAPSULE_TEXT")
+head(coupon_list_test2,10)
+
+write.csv(unique(coupon_list_test$GENRE_NAME),"/home/shahan/Desktop/Project/pon/coupon_list_test_GENRE_NAME.csv")
+coupon_list_test_GENRE_NAME <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test_GENRE_NAME.csv",header = T)
+coupon_list_test3 <- join(coupon_list_test2,coupon_list_test_GENRE_NAME, by = "GENRE_NAME")
+head(coupon_list_test3,10)
+
+write.csv(unique(coupon_list_test$large_area_name),"/home/shahan/Desktop/Project/pon/coupon_list_test_large_area_name.csv")
+coupon_list_test_large_area_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test_large_area_name.csv",header = T)
+coupon_list_test4 <- join(coupon_list_test3,coupon_list_test_large_area_name, by = "large_area_name")
+head(coupon_list_test4,10)
+
+write.csv(unique(coupon_list_test$ken_name),"/home/shahan/Desktop/Project/pon/coupon_list_test_ken_name.csv")
+coupon_list_test_ken_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test_ken_name.csv",header = T)
+coupon_list_test5 <- join(coupon_list_test4,coupon_list_test_ken_name, by = "ken_name")
+head(coupon_list_test5,10)
+
+write.csv(unique(coupon_list_test$small_area_name),"/home/shahan/Desktop/Project/pon/coupon_list_test_small_area_name.csv")
+coupon_list_test_small_area_name <- read.csv("/home/shahan/Desktop/Project/pon/coupon_list_test_small_area_name.csv",header = T)
+coupon_list_test6 <- join(coupon_list_test5,coupon_list_test_small_area_name, by = "small_area_name")
+head(coupon_list_test6,10)
+
+coupon_area_test3 #area name and pref name translated
+coupon_area_train2 #area name and pref name translated
+coupon_detail_train2 #area name translated
+coupon_list_test6 #all fields translated
+coupon_list_train6 # all fields translated
+coupon_visit_train # no translations needed
+prefecture_locations2 # pref name and office translated
+sample_submission 
+user_list2 #pref name translated
+# P.S. : All translations are sourced from Google Translate.
+
