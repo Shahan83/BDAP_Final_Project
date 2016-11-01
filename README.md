@@ -1,7 +1,8 @@
 # BDAP_Final_Project
 
-Final Project for the Big Data and Analytics Course from Kaggle: "Predict which coupons a customer will buy"
-link for the Project Description and Data - https://www.kaggle.com/c/coupon-purchase-prediction
+Final Project for the Big Data and Analytics Course from Kaggle: "Predict which coupons a customer will buy."
+
+Link for the Project Description and Data - https://www.kaggle.com/c/coupon-purchase-prediction
 
 1) Translations applied to relevant fields in all files [ test and train seperately] using R [Translations]
 Description from Kaggle:
