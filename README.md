@@ -5,7 +5,9 @@ Final Project for the Big Data and Analytics Course from Kaggle: "Predict which 
 Link for the Project Description and Data - https://www.kaggle.com/c/coupon-purchase-prediction
 
 1) Translations applied to relevant fields in all files [ test and train seperately] using R [Translations]
+
 Description from Kaggle:
+
 You are provided with a year of transactional data for 22,873 users on the site ponpare.jp. The training set spans the dates 2011-07-01 to 2012-06-23. The test set spans the week after the end of the training set, 2012-06-24 to 2012-06-30. The goal of the competition is to recommend a ranked list of coupons for each user in the dataset (found in user_list.csv). Your predictions are scored against the actual coupon purchases, made during the test set week, of the 310 possible test set coupons.
 
 File descriptions
