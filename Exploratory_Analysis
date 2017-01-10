@@ -1,0 +1,213 @@
+#Descriptive stats
+
+cpdtr <- coupon_detail_train
+
+cpltr <- coupon_list_train
+
+cplte <- coupon_list_test
+
+ulist <- user_list
+
+cpvtr <- coupon_visit_train
+
+cpate <- coupon_area_test
+
+cpatr <- coupon_area_train
+
+library(plyr)
+
+library(funModeling)
+
+library(corrplot)
+
+df_status(cpdtr)
+
+# no missing data
+
+#converting from character to date format
+
+cpdtr$I_DATE <- as.POSIXct(cpdtr$I_DATE)
+
+a <- table(cpdtr$ITEM_COUNT)
+
+b <- a[1:6]
+
+barplot(b,col='red',las=1,ylim=c(0,120000))
+
+# We can see here that most coupons are bought 1 at a time by customers [as expected].
+
+df_status(cpltr)
+
+summary(cpltr)
+
+# VALIDFROM , VALIDEND, VALIDPERIOD have 6147 missing values
+
+# USEABLE_DATE_ variables have 7005 missing values.
+
+#This points to the fact that 6147 coupons have no validity limitations and
+
+# 7005 coupons can be sued on any day of the week and have no such restrictions.
+
+#Also USEABLE_DATE_ date variables have values 0,1 and 2 where the meaning of 2 cannot
+
+# ascertained, hence we will be converting all 2's to 1's
+
+#We can also see range of numeric values and gain an understanding of the variables
+
+#Converting dates from character format to date format
+
+cpltr$DISPFROM <- as.POSIXct(cpltr$DISPFROM)
+
+cpltr$DISPEND <- as.POSIXct(cpltr$DISPEND)
+
+cpltr$VALIDFROM <- as.POSIXct(cpltr$VALIDFROM)
+
+cpltr$VALIDEND <- as.POSIXct(cpltr$VALIDEND)
+
+table(cpltr$DISPPERIOD)
+
+#One apporach that we thought of was to look at the view and purchase
+
+#history user-wise and do separate prediction of coupon purchase for
+
+#that user. However, that is not possible because the sample size for
+
+# a lot of user is too low to make a meaningful model.
+
+cpltr$PRICE_GROUP <- cut(cpltr$PRICE_RATE,
+
+breaks=c(0,20,40,60, 80,100),
+
+labels=c("0-19","20-39", "40-59", "60-79", "80-100"))
+
+count_PRICE_GROUP <- table(cpltr$PRICE_GROUP)
+
+barplot(count_PRICE_GROUP,main="Coupons with Various Discount Rates",ylim=c(0,14000))
+
+# We can see that most of the coupons are in the 40-60% discount range.
+
+#Also, there are hardly any coupons which have less than 40% discount.
+
+count_dispperiod <- table(cpltr$DISPPERIOD)
+
+barplot(count_dispperiod, main="Display Period of Coupons",ylim = c(0,7000),cex.axis = 0.75,cex.names = 0.65,las=1,col="yellow")
+
+# Most of the coupons are displayed for 2-4 days. Also we do not have many values greater
+
+# than 7
+
+corrplot(cor(cpltr[,c(3:5,8)]),method = "number",type = "lower")
+
+#can see some corealtion between discount price and catalog price [as expected]
+
+# Delivery Service and Food are the top 2 coupon genres present on the website
+
+a <-sort(decreasing = T,table(cpltr$TRANS_CAPSULE_TEXT))
+
+b <- a[1:10]
+
+barplot(b,col='red',cex.names = 0.65,cex.axis = 0.75, las=1,ylim = c(0,6000),main="Genre of Coupons present")
+
+library(qcc)
+
+barplot(sort(table(cpltr$TRANS_CAPSULE_TEXT),decreasing = T),col='red',cex.names = 0.7,las=2)
+
+pareto.chart(table(cpltr$TRANS_CAPSULE_TEXT),main ="Top Genres in Training Coupons",las=2)
+
+#We can see that the Training data is made upof a little more than 25% by Delivery Service
+
+# Food along with the above makes up 50%
+
+df_status(cplte)
+
+summary(cplte)
+
+#Similar observations to cpltr, and similar transformations will need to be made.
+
+#We can also see range of numeric values and gain an understanding of the variables
+
+#Converting dates from character format to date format
+
+cplte$DISPFROM <- as.POSIXct(cplte$DISPFROM)
+
+cplte$DISPEND <- as.POSIXct(cplte$DISPEND)
+
+cplte$VALIDFROM <- as.POSIXct(cplte$VALIDFROM)
+
+cplte$VALIDEND <- as.POSIXct(cplte$VALIDEND)
+
+df_status(ulist)
+
+#WITHDRAW_DATE has 95.97% NAs, hencec pointing to the fact that 95.97% of the
+
+#customers are still registered with the site.
+
+#converting into date format
+
+ulist$REG_DATE <- as.POSIXct(ulist$REG_DATE)
+
+ulist$WITHDRAW_DATE <- as.POSIXct(ulist$WITHDRAW_DATE)
+
+counts_gender <- table(ulist$SEX_ID)
+
+barplot(counts_gender, names.arg = c("Female","Male"),main = "Gender Distribution",ylim=c(0,12000),col=4)
+
+#We have 52% Males and 48% Females in the data
+
+ulist$AGE_GROUPS<-cut(ulist$AGE, breaks=c(14,24,34,44,54,64,74,84),
+
+labels=c("14-23", "24-33","34-43", "44-53", "54-63", "64-73", "74-83"))
+
+counts_age <- table(ulist$AGE_GROUPS)
+
+barplot(counts_age,xlab = "Age Groups",ylim=c(0,8000), main= "Age Distribution",col=13)
+
+#34-43 year old has the most website users with 31.3% of users followed by 24-33 year olds
+
+# which has 24% of the users.
+
+sort(table(ulist$PREF_NAME),decreasing = T)
+
+# We can see that the residential prefecture is not known for 37% of the users.
+
+# From the remaining users, Tokyo has the maximum residents.
+
+df_status(cpvtr)
+
+#95.68% of the purchase flags are set to 0. This means that roughly 4.5% of viewed
+
+# coupons were purchased.
+
+cpvtr$I_DATE <- as.POSIXct(cpvtr$I_DATE)
+
+barplot(table(cpvtr$PURCHASE_FLG),main = "Purchase Distribution",xlab = "Purchase made",col=c("red","green"),ylim=c(0,3000000))
+
+legend("topright", c("No","Yes"),cex=1.25,fill =c("red","green"))
+
+# Number of users simply viewed the coupons is a lot more than users
+
+# who have purchased
+
+sum(cpvtr$PURCHASE_FLG)
+
+sum(cpdtr$ITEM_COUNT)
+
+# The number of purchases recorded in coupon_view is very less than the
+
+#number of purchases recorded in coupon_detail. Hence we can assume that
+
+#the number of purchases in coupon_view is incomplete and so we will
+
+#disregard it and use the purchases data only from coupon_detail.
+
+df_status(cpate)
+
+#No missing data
+
+barplot(sort(table(cpate$TRANS_PREF_NAME),decreasing = T),col='red',cex.names = 0.7,las=2,ylim=c(0,400))
+
+#We can see here that most of the coupons in the test tables are available in the Tokyo prefecture
+
+df_status(cpatr)
+
+#No missing data
