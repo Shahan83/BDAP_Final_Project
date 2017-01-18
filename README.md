@@ -1,4 +1,4 @@
-# BDAP_Final_Project
+# BDAP_Final_Project - Ponpare Kaggle project
 
 Final Project for the Big Data and Analytics Course from Kaggle: "Predict which coupons a customer will buy."
 
